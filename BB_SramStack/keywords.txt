@@ -1,0 +1,23 @@
+#######################################
+# Syntax Coloring Map for SramStack
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+BB_SramStack	KEYWORD1
+BB_StackIterator   KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+begin	KEYWORD2
+isEmpty	KEYWORD2
+isFull	KEYWORD2
+pop	KEYWORD2
+peek	KEYWORD2
+push	KEYWORD2
+clear	KEYWORD2
+iterator	KEYWORD2
+hasNext KEYWORD2
+next KEYWORD2
