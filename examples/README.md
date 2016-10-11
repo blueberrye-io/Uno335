@@ -1,3 +1,6 @@
+#2016-10-10 Engelbert Mittermeier:
+added an example showing the usage of a 8x32 RGB LED Matrix
+
 #2016-09-01 Engelbert Mittermeier:
 this folder contains example code
 
