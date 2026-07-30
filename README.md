@@ -41,12 +41,14 @@ memory's input thresholds — not a clean high, not a clean low — so the chip 
 never reliably deselected and does not answer. That is our design mistake, plain
 and simple, and it made it all the way through to the finished boards.
 
-While we are at it: the silkscreen on that batch is incomplete too, so not every
-label on the board matches what is actually underneath.
+While we are at it: the silkscreen on that batch is incomplete — some markings
+simply did not make it onto the board. The labels that *are* printed are correct,
+so you can trust what you see; there is just less of it than there should be.
 
 We are not reworking several hundred boards over this, so treat that batch as
-what it is — a faulty run. **The level shifters are unaffected**, they sit on a
-separate path and are the reason to use this board in the first place.
+what it is — a faulty run. **The level shifters work**, though. They sit on a
+separate path, they are unaffected by any of the above, and they are the reason
+to reach for this board in the first place.
 
 ## The library is fine
 
