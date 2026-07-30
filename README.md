@@ -1,57 +1,73 @@
 # Uno335
 
-Arduino-compatible board with an on-board serial SRAM (SPI), plus the
-`BB_SramStack` library and example sketches that use it.
+An Arduino Uno R3 derivative with **on-board level shifters**, so you can talk to
+3.3 V parts without an adapter board. Plus a serial SRAM on SPI — see the note
+below on that one.
 
----
+## What makes it different from a plain Uno R3
 
-## ⚠️ Important: the serial SRAM does not work on production boards
+* **I²C level shifter** — BSS138 MOSFET circuit on the two dedicated I²C pins next
+  to the reset button. Use 5 V on A4/A5 and 3.3 V on SCL/SDA at the same time.
+* **SPI level shifter** — TI **TXB0104**, bidirectional, on pins 10–13.
+* **512 kbit serial SRAM** on SPI behind the TXB0104. Chip select is on **A3**
+  (not D10, so D10 stays free for you), level shifted through a simple resistive
+  divider.
+* **Own USB identity** — VendorID `0x2C72`, ProductID `0x0335`. The ATmega16U2
+  runs a slightly modified bootloader/DFU; the CDC SubClass was changed to `0x02`
+  so Windows 10 loads `USBser.sys` without a custom driver. The ATmega328P
+  bootloader is identical to the Uno R3, and the Arduino IDE treats the board as
+  a plain Uno R3.
 
-**On the boards that were actually produced, the on-board serial SRAM is not
-usable.** The supply voltage for the SRAM is derived through a resistive
-divider, and on the production run the two resistors were fitted the wrong way
-round. The resulting supply sits below the minimum operating voltage of the
-memory chip, so it does not respond reliably — or at all.
+Every one of these features can be switched off by jumpers:
 
-Two things made this slip through:
+| Jumper configuration | What you get |
+|:---|:---|
+| **Pin setting 1** | 100 % Arduino R3 compatible — shifters and SRAM disabled |
+| **Pin setting 2** | SPI and I²C level shifting plus serial SRAM enabled |
 
-* A resistive divider is not a proper supply rail to begin with. It sags as
-  soon as the SRAM draws current during SPI transfers, so even correctly
-  populated it would be marginal.
-* The board passed its factory functional test because that test was run at an
-  elevated supply voltage, which lifted the divider output far enough for the
-  SRAM to answer.
+To use the SRAM you need the TXB0104 enabled (the SRAM runs its SPI at 3.3 V)
+*and* the A3 chip-select divider enabled.
 
-The boards are **not** being reworked. Please treat the SRAM as absent and use
-the Uno335 as a plain Arduino-compatible board. Everything else on it is fine.
+## Heads-up: the SRAM does not work on the boards we shipped
 
-## What this repository is still good for
+Fair warning before anyone spends an evening debugging: **on our production
+batch the serial SRAM is a dud.** We drew the resistive divider for the A3 chip
+select the wrong way round, so CS never reaches a valid level and the memory
+simply does not answer. That is our design mistake, plain and simple, and it
+made it all the way through to the finished boards.
 
-The library and the examples are **not** the problem — they were developed
-against working hardware and the code is sound. They remain here because they
-are a complete, documented example of driving a Microchip 23xx-series serial
-SRAM from an ATmega328 over SPI:
+While we are at it: the silkscreen on that batch is incomplete too, so not every
+label on the board matches what is actually underneath.
+
+We are not reworking several hundred boards over this, so treat that batch as
+what it is — a faulty run. **The level shifters are unaffected**, they sit on a
+separate path and are the reason to use this board in the first place.
+
+## The library is fine
+
+`BB_SramStack/` and the sketches in `examples/` were written against working
+hardware and the code is sound. They are worth keeping as a complete, documented
+example of driving a Microchip 23xx-series serial SRAM from an ATmega328:
 
 * SPI mode 0, MSB first, clock f/4
-* chip select on **A3** (not the usual D10)
+* chip select on **A3**
 * commands `0x02` write, `0x03` read, `0x01` write status, `0x05` read status
-* 16-bit addressing, 64 KByte (512 kbit) capacity, byte mode
+* 16-bit addressing, 64 KByte (512 kbit), byte mode
+* LIFO stack API on top: `push` / `pop` / `peek`, byte or word cells, plus an iterator
 
-If you are wiring a 23LC512 or similar to an Arduino yourself, the code in
-`BB_SramStack/` and the sketches in `examples/` should port with little effort —
-just point the chip select at whichever pin you used.
+If you are wiring a 23LC512 to an Arduino yourself, this should port with little
+effort — just point the chip select at whichever pin you used.
 
-**Note:** `BB_SramStack::begin()` forces D10 (SS) to OUTPUT HIGH. This is
-required so the AVR SPI hardware does not fall back into slave mode, but it
-means D10 can no longer be used as a general-purpose input while the library is
-active.
+**Note:** `BB_SramStack::begin()` forces D10 (SS) to OUTPUT HIGH. That is required
+so the AVR SPI hardware does not fall back into slave mode, but it means D10
+cannot be used as a general-purpose input while the library is active.
 
 ## Contents
 
 | Path | Description |
 |:---|:---|
-| `BB_SramStack/` | Library providing LIFO stack access to the serial SRAM (byte and word mode, iterator) |
-| `examples/BB_sramBasicTutorial/` | Raw SPI access without the library: computes and stores 2048 digits of *e* |
+| `BB_SramStack/` | LIFO stack access to the serial SRAM (byte and word mode, iterator) |
+| `examples/BB_sramBasicTutorial/` | Raw SPI without the library: computes and stores 2048 digits of *e* |
 | `examples/BB_sramStackTutorial_example1/` | Stack basics: push, pop, peek |
 | `examples/BB_sramStackTutorial_example2/` | Stack with iterator |
 | `examples/BB_ledWithSramStack/` | LED matrix driven from data held in the SRAM |
@@ -60,7 +76,7 @@ active.
 
 * **2016-10-11** — Engelbert Mittermeier: example sketch for the LED matrix tutorial
 * **2016-09-01** — Engelbert Mittermeier: tutorial code
-* **2016-08-10** — Engelbert Mittermeier: `BB_SramStack` library for SRAM usage
+* **2016-08-10** — Engelbert Mittermeier: `BB_SramStack` library
 * **2015-09-23** — initial commit
 
 ## License
