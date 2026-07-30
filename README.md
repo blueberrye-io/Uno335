@@ -9,9 +9,12 @@ below on that one.
 * **I²C level shifter** — BSS138 MOSFET circuit on the two dedicated I²C pins next
   to the reset button. Use 5 V on A4/A5 and 3.3 V on SCL/SDA at the same time.
 * **SPI level shifter** — TI **TXB0104**, bidirectional, on pins 10–13.
-* **512 kbit serial SRAM** on SPI behind the TXB0104. Chip select is on **A3**
-  (not D10, so D10 stays free for you), level shifted through a simple resistive
-  divider.
+* **512 kbit serial SRAM** on SPI behind the TXB0104. Chip select sits on **A3**
+  rather than D10, so D10 stays free for whatever else you need. A3 is an ordinary
+  5 V pin and does not run through the TXB0104 — whose four channels are already
+  taken by SCK, MOSI, MISO and SS on D10–13 — so its level is brought down to
+  3.3 V by a simple resistive divider. A jumper disconnects that chip select
+  again when you want A3 back as a normal pin.
 * **Own USB identity** — VendorID `0x2C72`, ProductID `0x0335`. The ATmega16U2
   runs a slightly modified bootloader/DFU; the CDC SubClass was changed to `0x02`
   so Windows 10 loads `USBser.sys` without a custom driver. The ATmega328P
@@ -26,15 +29,17 @@ Every one of these features can be switched off by jumpers:
 | **Pin setting 2** | SPI and I²C level shifting plus serial SRAM enabled |
 
 To use the SRAM you need the TXB0104 enabled (the SRAM runs its SPI at 3.3 V)
-*and* the A3 chip-select divider enabled.
+*and* the A3 chip select connected.
 
 ## Heads-up: the SRAM does not work on the boards we shipped
 
 Fair warning before anyone spends an evening debugging: **on our production
 batch the serial SRAM is a dud.** We drew the resistive divider for the A3 chip
-select the wrong way round, so CS never reaches a valid level and the memory
-simply does not answer. That is our design mistake, plain and simple, and it
-made it all the way through to the finished boards.
+select the wrong way round, so instead of dividing 5 V down to about 3.3 V it
+produces roughly 1.7 V. That lands squarely in the forbidden zone between the
+memory's input thresholds — not a clean high, not a clean low — so the chip is
+never reliably deselected and does not answer. That is our design mistake, plain
+and simple, and it made it all the way through to the finished boards.
 
 While we are at it: the silkscreen on that batch is incomplete too, so not every
 label on the board matches what is actually underneath.
